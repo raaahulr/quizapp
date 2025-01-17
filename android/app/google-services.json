@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "451268846488",
+    "project_id": "quizapptrail",
+    "storage_bucket": "quizapptrail.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:451268846488:android:75960c4fc6d8e37b6741ed",
+        "android_client_info": {
+          "package_name": "com.example.quiz_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCK6uohLN2YXt-aK5cGq_5EtqEnV33Ti_8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:451268846488:android:b06e234b38142ed66741ed",
+        "android_client_info": {
+          "package_name": "com.unfold.quizapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCK6uohLN2YXt-aK5cGq_5EtqEnV33Ti_8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

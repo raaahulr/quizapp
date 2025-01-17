@@ -1,0 +1,52 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.quiz_app" // Ensure this matches your package name
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId = "com.example.quiz_app" // Ensure this matches your package name
+        minSdk = 23
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug // Update this for production
+        }
+    }
+}
+
+// Apply the Google services Gradle plugin to the app module
+apply plugin: 'com.google.gms.google-services'
+
+dependencies {
+    // Firebase BoM (Bill of Materials) for managing Firebase dependencies
+    implementation platform('com.google.firebase:firebase-bom:31.0.0') // Use the latest BOM version
+
+    // Firebase dependencies
+    implementation 'com.google.firebase:firebase-auth' // Firebase Authentication
+    implementation 'com.google.firebase:firebase-firestore' // Firestore Database
+    // Add other Firebase dependencies as needed
+}
+
+flutter {
+    source = "../.."
+}

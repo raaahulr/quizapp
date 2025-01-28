@@ -18,6 +18,7 @@ class Quiz extends StatefulWidget {
 class _QuizState extends State<Quiz> {
   List<String> selectedAnswers = [];
   var activeScreen = 'login-screen'; // Start with the login screen
+  String loggedInEmail = ''; // Variable to store the logged-in email
 
   void switchScreen() {
     setState(() {
@@ -48,8 +49,9 @@ class _QuizState extends State<Quiz> {
     });
   }
 
-  void login() {
+  void login(String email) {
     setState(() {
+      loggedInEmail = email; // Set the logged-in email
       activeScreen = 'start-screen'; // Switch to start screen after login
     });
   }
@@ -67,13 +69,15 @@ class _QuizState extends State<Quiz> {
 
     // Determine which screen to display based on activeScreen
     if (activeScreen == 'login-screen') {
-      screenWidget = LoginScreen(login);
+      screenWidget =
+          LoginScreen((email) => login(email)); // Pass the login callback
     } else if (activeScreen == 'registration-screen') {
       screenWidget = RegistrationScreen();
     } else if (activeScreen == 'questions-screen') {
       screenWidget = QuestionsScreen(chooseAnswer, confirmAnswers);
     } else if (activeScreen == 'results-screen') {
-      screenWidget = ResultsScreen(selectedAnswers, restartQuiz);
+      screenWidget = ResultsScreen(
+          selectedAnswers, restartQuiz, loggedInEmail); // Pass the email
     } else {
       // Fallback to the login screen if none match
       screenWidget = StartScreen(startQuiz);

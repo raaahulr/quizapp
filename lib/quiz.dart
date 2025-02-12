@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:quiz_app/data/questions.dart';
 import 'package:quiz_app/questions_screen.dart';
 import 'package:quiz_app/results_screen.dart';
@@ -27,9 +28,12 @@ class _QuizState extends State<Quiz> {
   }
 
   void restartQuiz() {
+    // Clear the stored token and navigate to the login screen
+    FlutterSecureStorage().delete(key: 'jwt_token');
+
     setState(() {
       selectedAnswers = [];
-      activeScreen = 'questions-screen';
+      activeScreen = 'login-screen'; // Switch to the login screen
     });
   }
 

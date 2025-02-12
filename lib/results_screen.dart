@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:quiz_app/data/questions.dart';
+import 'package:quiz_app/login_screen.dart';
 import 'package:quiz_app/questions_summary.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -10,7 +12,7 @@ class ResultsScreen extends StatelessWidget {
 
   final List<String> chosenAnswer;
   final void Function() onRestart;
-  final String email; // Accept email as a parameter
+  final String email;
 
   List<Map<String, Object>> getSummaryData() {
     final List<Map<String, Object>> summary = [];
@@ -29,29 +31,77 @@ class ResultsScreen extends StatelessWidget {
     return summary;
   }
 
-  Future<void> saveQuizResult(int correctAnswers, int totalQuestions) async {
-    final url =
-        'http://10.0.2.2/backendQuiz/public/saveResult'; // Update with your API URL
+  Future<void> saveQuizResult(
+      int correctAnswers, int totalQuestions, BuildContext context) async {
+    final url = 'http://10.0.2.2/backendQuiz/public/saveResult';
+    final storage = FlutterSecureStorage();
+    final token = await storage.read(key: 'jwt_token'); // Retrieve the token
+
+    if (token == null) {
+      print('No token found');
+      return;
+    }
 
     try {
-      final response = await http.post(Uri.parse(url),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            'email': email, // Use the email parameter
-            'correct_answers': correctAnswers,
-            'total_questions': totalQuestions
-          }));
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        },
+        body: json.encode({
+          'email': email,
+          'correct_answers': correctAnswers,
+          'total_questions': totalQuestions,
+        }),
+      );
 
-      print('Response Status Code: ${response.statusCode}'); // Log status code
-      print('Response Body: ${response.body}'); // Log response body
+      final responseData = json.decode(response.body);
 
-      if (response.statusCode == 200) {
-        print('Quiz result saved successfully');
+      if (response.statusCode == 200 && responseData['status'] == 'success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Quiz result saved successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else if (responseData['message'] == 'Token expired') {
+        // Token expired case, prompt the user to log in again
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Your session has expired. Please log in again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+
+        // Switch back to the login screen for re-authentication
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginScreen((email) {
+              // Re-login logic here
+              saveQuizResult(correctAnswers, totalQuestions,
+                  context); // Retry saving result after re-login
+            }),
+          ),
+          (route) => false,
+        );
       } else {
-        print('Failed to save quiz result: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Failed to save quiz result: ${responseData['message'] ?? 'Unknown error'}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
-      print('Error saving quiz result: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving quiz result: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -66,7 +116,7 @@ class ResultsScreen extends StatelessWidget {
     // Save result when screen is shown
     WidgetsBinding.instance.addPostFrameCallback((_) {
       saveQuizResult(
-          numCorrectQuestions, numTotalQuestions); // Store email here
+          numCorrectQuestions, numTotalQuestions, context); // Store email here
     });
 
     return SizedBox(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:quiz_app/registration_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   String? errorMessage;
+  final storage = FlutterSecureStorage();
 
   Future<void> _performLogin() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
@@ -26,8 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     try {
-      print('Attempting login with email: ${emailController.text}');
-
       final response = await http.post(
         Uri.parse('http://10.0.2.2/backendQuiz/public/login'),
         headers: {
@@ -39,30 +38,19 @@ class _LoginScreenState extends State<LoginScreen> {
         }),
       );
 
-      print('Response Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-
       final responseData = json.decode(response.body);
 
       if (response.statusCode == 200 && responseData['status'] == 'success') {
-        print('Login Successful');
-        String email = emailController.text; // Use the email directly
-        widget.onLogin(email); // Pass the email to the callback
+        String token = responseData['token'];
+        print("This is the token key: $token");
+        await storage.write(key: 'jwt_token', value: token);
+        widget.onLogin(emailController.text);
       } else {
-        print('Login Failed: ${responseData['message']}');
         setState(() {
-          if (responseData['message'] is Map) {
-            // Handle validation errors
-            errorMessage = (responseData['message'] as Map<String, dynamic>)
-                .values
-                .join(', ');
-          } else {
-            errorMessage = responseData['message'] ?? 'Login failed';
-          }
+          errorMessage = responseData['message'] ?? 'Login failed';
         });
       }
     } catch (e) {
-      print('Login Error: $e');
       setState(() {
         errorMessage = 'Network error: $e';
       });
@@ -92,6 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: OutlineInputBorder(),
                     filled: true,
                     fillColor: Colors.grey[200],
+                    prefixIcon: Icon(Icons.email),
                   ),
                 ),
                 SizedBox(height: 10),
@@ -103,12 +92,47 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: OutlineInputBorder(),
                     filled: true,
                     fillColor: Colors.grey[200],
+                    prefixIcon: Icon(Icons.lock),
                   ),
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _performLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 15,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                   child: Text('Login'),
+                ),
+                SizedBox(height: 10),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RegistrationScreen(),
+                      ),
+                    );
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.grey,
+                    foregroundColor: Colors.black,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ), // Padding
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text('Register'),
                 ),
                 if (errorMessage != null)
                   Padding(
@@ -118,16 +142,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(color: Colors.red),
                     ),
                   ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => RegistrationScreen()),
-                    );
-                  },
-                  child: Text('Register'),
-                ),
               ],
             ),
           ),
